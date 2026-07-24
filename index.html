@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mixtape</title>
+  <meta name="description" content="A personal mixtape — made with love.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════
+       INTRO SCREEN
+       ════════════════════════════════════════════ -->
+  <div id="intro-screen" class="intro-screen">
+    <header class="site-header">
+      <div class="header-left">
+        <h1 class="header-title" id="header-title-intro">YOUR TITLE</h1>
+        <p class="header-subtitle" id="header-subtitle-intro">Your subtitle goes here.</p>
+      </div>
+      <div class="header-right">
+        <button class="gallery-btn" id="gallery-btn-intro" aria-label="Open gallery">GALLERY</button>
+      </div>
+    </header>
+
+    <div class="intro-content">
+      <div class="intro-letter" id="intro-letter-text">
+        Loading...
+      </div>
+      <button class="intro-btn" id="intro-btn">PLAY</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       CASSETTE ANIMATION OVERLAY
+       ════════════════════════════════════════════ -->
+  <div id="cassette-animation" class="cassette-animation-overlay hidden">
+    <img id="cassette-frame" class="cassette-frame" src="" alt="Cassette insertion animation">
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       MAIN PLAYER
+       ════════════════════════════════════════════ -->
+  <div id="main-player" class="main-player">
+    <header class="site-header">
+      <div class="header-left">
+        <h1 class="header-title" id="header-title-main">YOUR TITLE</h1>
+        <p class="header-subtitle" id="header-subtitle-main">Your subtitle goes here.</p>
+      </div>
+      <div class="header-right">
+        <button class="gallery-btn" id="gallery-btn-main" aria-label="Open gallery">GALLERY</button>
+      </div>
+    </header>
+
+    <div class="player-content">
+      <!-- Left Column: Letter -->
+      <div class="letter-panel" id="letter-panel">
+        <div class="letter-heading" id="letter-heading">dear you,</div>
+        <div class="letter-body" id="letter-body">
+          <span id="letter-text"></span><span class="typewriter-cursor" id="typewriter-cursor"></span>
+        </div>
+      </div>
+
+      <!-- Center Column: Mixtape Image -->
+      <div class="mixtape-panel">
+        <div class="mixtape-image-wrapper">
+          <img
+            id="mixtape-image"
+            class="mixtape-image"
+            src="assets/mixtape.PNG"
+            alt="Mixtape cassette"
+          >
+        </div>
+      </div>
+
+      <!-- Right Column: Music Player -->
+      <div class="player-panel" id="player-panel">
+        <div class="track-info">
+          <div class="track-number" id="track-number">1 / 1</div>
+          <div class="track-name" id="track-name">Loading...</div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar-wrapper" id="progress-bar" role="progressbar" aria-label="Song progress">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-timestamps">
+            <span class="timestamp" id="time-elapsed">00:00</span>
+            <span class="timestamp" id="time-total">00:00</span>
+          </div>
+        </div>
+
+        <div class="transport-controls">
+          <button class="transport-btn prev-btn" id="prev-btn" aria-label="Previous track">◀◀</button>
+          <button class="transport-btn play-btn" id="play-pause-btn" aria-label="Play">▶</button>
+          <button class="transport-btn next-btn" id="next-btn" aria-label="Next track">▶▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       PRESS TO PLAY OVERLAY
+       ════════════════════════════════════════════ -->
+  <div id="press-to-play" class="press-to-play-overlay hidden">
+    <div id="press-to-play-content">
+      <!-- Will be populated: either an image or fallback text -->
+      <div class="press-to-play-text">PRESS PLAY TO START</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       GALLERY MODAL
+       ════════════════════════════════════════════ -->
+  <div id="gallery-modal" class="gallery-modal">
+    <div class="gallery-backdrop" id="gallery-backdrop"></div>
+    <button class="gallery-close-btn" id="gallery-close-btn" aria-label="Close gallery">✕</button>
+    <div class="gallery-container">
+      <div class="gallery-grid" id="gallery-grid">
+        <!-- Gallery images populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       GALLERY LIGHTBOX
+       ════════════════════════════════════════════ -->
+  <div id="gallery-lightbox" class="gallery-lightbox">
+    <img id="lightbox-image" src="" alt="Gallery photo fullscreen">
+  </div>
+
+  <!-- Hidden audio element -->
+  <audio id="audio-player" preload="auto"></audio>
+
+  <script src="app.js"></script>
+</body>
+</html>

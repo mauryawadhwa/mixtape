@@ -1,0 +1,29 @@
+{
+  "header": {
+    "title": "YOUR TITLE HERE",
+    "subtitle": "Your subtitle text goes here."
+  },
+  "introLetter": "This is your intro letter.\n\nIt will appear on the first screen before the mixtape starts.\n\nReplace this with your own words.",
+  "introButtonText": "PLAY",
+  "recipientName": "you",
+  "pressToPlayImage": "",
+  "songs": [
+    {
+      "file": "assets/songs/song1.mp3",
+      "title": "Test Song",
+      "letter": "This is a test letter for the first song.\n\nIt should type out character by character as the song plays.\n\nWhen about 20 seconds remain, the text will start removing itself character by character.\n\nPretty cool, right?"
+    }
+  ],
+  "gallery": [
+    "gallery/photo1.png",
+    "gallery/photo2.png",
+    "gallery/photo3.png",
+    "gallery/photo4.png"
+  ],
+  "animation": {
+    "frames": "animation/frame_",
+    "frameCount": 0,
+    "frameExtension": ".png",
+    "frameRate": 24
+  }
+}
