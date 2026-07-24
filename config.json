@@ -1,10 +1,10 @@
 {
   "header": {
-    "title": "YOUR TITLE HERE",
-    "subtitle": "Your subtitle text goes here."
+    "title": "For My Beloved, Adored, and Plushy-like Munchkin,",
+    "subtitle": "This is for your low days, days you don't feel like talking, and for the inevitable day I make you mad agian."
   },
-  "introLetter": "This is your intro letter.\n\nIt will appear on the first screen before the mixtape starts.\n\nReplace this with your own words.",
-  "introButtonText": "PLAY",
+  "introLetter": "To my sugar plum, my cookie dough, my muffin with vanilla ice cream,\n\nI started working around about when I had my first dream about us, our future, what we're like in the future, where we are, the entire works. It happened on 17th July, and I haven't been able to stop thinking about it since then.\n\nOne day that dream will be our reality. Till then, let this mixtape keep you company. \n\nYours Truely,\"Chumkins\"",
+  "introButtonText": "IntroButtonText",
   "recipientName": "you",
   "pressToPlayImage": "",
   "songs": [
@@ -22,7 +22,7 @@
   ],
   "animation": {
     "frames": "animation/frame_",
-    "frameCount": 0,
+    "frameCount": 21,
     "frameExtension": ".png",
     "frameRate": 24
   }
