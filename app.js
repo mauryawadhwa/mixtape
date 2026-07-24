@@ -62,6 +62,8 @@
   const lightbox = $('gallery-lightbox');
   const lightboxImage = $('lightbox-image');
 
+  const songCover = $('song-cover');
+
   const audio = $('audio-player');
 
   // ════════════════════════════════════════════
@@ -125,6 +127,14 @@
     progressFill.style.width = '0%';
     timeElapsed.textContent = '00:00';
     timeTotal.textContent = '00:00';
+
+    if (song.coverImage) {
+      songCover.src = song.coverImage;
+      songCover.style.display = 'block';
+    } else {
+      songCover.style.display = 'none';
+      songCover.src = '';
+    }
 
     // Reset type-out trigger
     typeOutTriggered = false;
@@ -193,9 +203,11 @@
 
   function fadeOutLetterThenAdvance(newIndex, shouldPlay) {
     letterBody.classList.add('fade-out');
+    if (songCover) songCover.classList.add('fade-out');
 
     setTimeout(() => {
       letterBody.classList.remove('fade-out');
+      if (songCover) songCover.classList.remove('fade-out');
       letterText.textContent = '';
       typewriterCursor.style.display = 'inline-block';
 
