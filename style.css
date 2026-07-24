@@ -138,22 +138,27 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 60px;
-  max-width: 700px;
-  margin: 0 auto;
-  text-align: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 0;
+  width: 60%;
+  height: 70%;
+  max-width: none;
+  margin: auto;
+  text-align: left;
 }
 
 .intro-letter {
   font-family: var(--font-pixel);
-  font-size: 0.6rem;
-  line-height: 2.4;
+  font-size: 0.9rem;
+  line-height: 2.2;
   color: var(--text-primary);
-  margin-bottom: 50px;
-  white-space: pre-line;
-  max-width: 550px;
+  margin-bottom: 20px;
+  white-space: pre-wrap;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  max-width: none;
 }
 
 .intro-btn {
@@ -237,9 +242,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 20px 0;
-  min-height: 350px;
+  height: 65vh;
 }
 
 .letter-heading {
@@ -259,7 +264,11 @@ body {
   white-space: pre-wrap;
   word-wrap: break-word;
   position: relative;
-  min-height: 200px;
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  text-indent: 0;
+  padding-left: 0;
 }
 
 .letter-body .typewriter-cursor {
@@ -314,7 +323,7 @@ body {
   max-width: 100%;
   max-height: 55vh;
   object-fit: contain;
-  animation: wobble 3s ease-in-out infinite alternate;
+  animation: stepped-wobble 0.333s step-end infinite;
   animation-play-state: paused;
   filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.08));
 }
@@ -323,9 +332,12 @@ body {
   animation-play-state: running;
 }
 
-@keyframes wobble {
-  0% { transform: rotate(-2.5deg); }
-  100% { transform: rotate(2.5deg); }
+@keyframes stepped-wobble {
+  0% { transform: rotate(-3deg); }
+  25% { transform: rotate(0deg); }
+  50% { transform: rotate(3deg); }
+  75% { transform: rotate(0deg); }
+  100% { transform: rotate(-3deg); }
 }
 
 /* ── Right Column: Music Player ── */
@@ -338,6 +350,22 @@ body {
   justify-content: center;
   gap: 20px;
   padding: 20px 0;
+}
+
+.song-cover {
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.fade-transition {
+  transition: opacity 0.4s ease;
+}
+
+.song-cover.fade-out {
+  opacity: 0;
 }
 
 /* Track info */
