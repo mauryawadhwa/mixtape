@@ -81,9 +81,7 @@
   }
 
   function initializeApp() {
-    // Set header text on both screens
-    headerTitleIntro.textContent = config.header.title;
-    headerSubtitleIntro.textContent = config.header.subtitle;
+    // Set header text on main screen
     headerTitleMain.textContent = config.header.title;
     headerSubtitleMain.textContent = config.header.subtitle;
 
@@ -488,7 +486,6 @@
     audio.addEventListener('ended', onTrackEnded);
 
     // Gallery
-    galleryBtnIntro.addEventListener('click', openGallery);
     galleryBtnMain.addEventListener('click', openGallery);
     galleryCloseBtn.addEventListener('click', closeGallery);
     galleryBackdrop.addEventListener('click', closeGallery);
