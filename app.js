@@ -322,7 +322,7 @@
     const anim = config.animation;
     cassetteFrames = [];
 
-    for (let i = 1; i <= anim.frameCount; i++) {
+    for (let i = 0; i <= anim.frameCount; i++) {
       const img = new Image();
       const frameNum = String(i).padStart(4, '0');
       img.src = 'assets/' + anim.frames + frameNum + anim.frameExtension;
