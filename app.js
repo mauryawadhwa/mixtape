@@ -323,10 +323,7 @@
       img.style.left = x + 'vw';
       img.style.top = y + 'vh';
       img.style.width = '20vw'; // uniform size
-      
-      if (index !== 0) {
-        img.classList.add('disabled');
-      }
+      img.style.zIndex = index + 1; // Ensure correct stacking order
       
       // Append to puzzleOverlay so they can be anywhere on screen
       puzzleOverlay.appendChild(img);
@@ -337,7 +334,7 @@
 
   function bindPuzzleEvents() {
     const startDrag = (e) => {
-      if (e.target.classList.contains('puzzle-piece') && !e.target.classList.contains('disabled') && !e.target.classList.contains('snapped')) {
+      if (e.target.classList.contains('puzzle-piece') && !e.target.classList.contains('snapped')) {
         draggedPiece = e.target;
         const rect = draggedPiece.getBoundingClientRect();
         const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
@@ -380,7 +377,8 @@
       // Check snap
       const pieceRect = draggedPiece.getBoundingClientRect();
       const areaRect = puzzleArea.getBoundingClientRect();
-      const step = PUZZLE_STEPS[currentPuzzleStep];
+      const stepIndex = parseInt(draggedPiece.dataset.stepIndex, 10);
+      const step = PUZZLE_STEPS[stepIndex];
       
       // Target position in viewport coordinates
       const targetLeft = areaRect.left + (areaRect.width * (step.targetX / 100));
@@ -400,14 +398,9 @@
         draggedPiece.style.top = step.targetY + '%';
         puzzleArea.appendChild(draggedPiece);
         
-        currentPuzzleStep++;
-        
-        if (currentPuzzleStep < PUZZLE_STEPS.length) {
-          // Enable next piece
-          const nextPiece = document.querySelector(`[data-step-index="${currentPuzzleStep}"]`);
-          if (nextPiece) nextPiece.classList.remove('disabled');
-        } else {
-          // Puzzle completed
+        // Check if all pieces are snapped
+        const snappedPieces = document.querySelectorAll('.puzzle-piece.snapped');
+        if (snappedPieces.length === PUZZLE_STEPS.length) {
           completePuzzle();
         }
       }
