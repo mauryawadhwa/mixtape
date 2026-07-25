@@ -18,7 +18,7 @@
   let typeOutTriggered = false;
 
   // Puzzle Game State
-  let currentPuzzleStep = 0;
+  let maxZIndex = 5;
   let draggedPiece = null;
   let dragOffsetX = 0;
   let dragOffsetY = 0;
@@ -26,7 +26,7 @@
     { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 50 },
     { id: 'cogwheel-1', file: 'cogwheel.png', targetX: 16.67, targetY: 22.25, width: 26.66 },
     { id: 'cogwheel-2', file: 'cogwheel.png', targetX: 56.67, targetY: 22.25, width: 26.66 },
-    { id: 'tape', file: 'tape.png', targetX: 3.33, targetY: 2.25, width: 53.33 },
+    { id: 'tape', file: 'tape.png', targetX: 3.33, targetY: 2.25, width: 30 },
     { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 50 }
   ];
 
@@ -307,6 +307,10 @@
     completedImg.id = 'puzzle-completed';
     puzzleArea.appendChild(completedImg);
 
+    // Generate random initial z-indexes so the user has to re-order them
+    let initialZ = [1, 2, 3, 4, 5];
+    initialZ.sort(() => Math.random() - 0.5);
+
     // Create and scatter pieces
     PUZZLE_STEPS.forEach((step, index) => {
       const img = document.createElement('img');
@@ -326,7 +330,7 @@
       img.style.left = x + 'vw';
       img.style.top = y + 'vh';
       img.style.width = actualWidthVw + 'vw';
-      img.style.zIndex = index + 1; // Ensure correct stacking order
+      img.style.zIndex = initialZ[index]; // Apply randomized stacking
       
       // Append to puzzleOverlay so they can be anywhere on screen
       puzzleOverlay.appendChild(img);
@@ -337,7 +341,7 @@
 
   function bindPuzzleEvents() {
     const startDrag = (e) => {
-      if (e.target.classList.contains('puzzle-piece') && !e.target.classList.contains('snapped')) {
+      if (e.target.classList.contains('puzzle-piece')) {
         draggedPiece = e.target;
         const rect = draggedPiece.getBoundingClientRect();
         const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
@@ -346,6 +350,9 @@
         dragOffsetX = clientX - rect.left;
         dragOffsetY = clientY - rect.top;
         
+        // Bring piece to front when dragged
+        maxZIndex++;
+        draggedPiece.style.zIndex = maxZIndex;
         draggedPiece.classList.add('dragging');
       }
     };
@@ -376,73 +383,7 @@
       if (!draggedPiece) return;
       
       draggedPiece.classList.remove('dragging');
-      
-      // Check snap
-      const pieceRect = draggedPiece.getBoundingClientRect();
-      const areaRect = puzzleArea.getBoundingClientRect();
-      const stepIndex = parseInt(draggedPiece.dataset.stepIndex, 10);
-      const step = PUZZLE_STEPS[stepIndex];
-      
-      let matchedTarget = null;
-      let minDistance = 100; // Snap threshold
-      
-      if (step.id.startsWith('cogwheel')) {
-        // Cogwheels can snap to either left or right hole
-        const possibleTargets = [
-          { id: 'target-cogwheel-left', targetX: 16.67, targetY: 22.25, width: 26.66 },
-          { id: 'target-cogwheel-right', targetX: 56.67, targetY: 22.25, width: 26.66 }
-        ];
-        
-        // Exclude targets that are already occupied
-        const snappedCogwheels = document.querySelectorAll('.puzzle-piece.snapped[id^="piece-cogwheel"]');
-        const occupiedIds = Array.from(snappedCogwheels).map(c => c.dataset.snappedTargetId);
-        
-        for (const t of possibleTargets) {
-          if (occupiedIds.includes(t.id)) continue;
-          
-          const targetLeft = areaRect.left + (areaRect.width * (t.targetX / 100));
-          const targetTop = areaRect.top + (areaRect.height * (t.targetY / 100));
-          const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
-          
-          if (dist < minDistance) {
-            minDistance = dist;
-            matchedTarget = t;
-          }
-        }
-      } else {
-        const targetLeft = areaRect.left + (areaRect.width * (step.targetX / 100));
-        const targetTop = areaRect.top + (areaRect.height * (step.targetY / 100));
-        const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
-        if (dist < minDistance) {
-          minDistance = dist;
-          matchedTarget = step;
-        }
-      }
-      
-      if (matchedTarget) {
-        // Append to puzzleArea first to ensure correct DOM placement
-        puzzleArea.appendChild(draggedPiece);
-        
-        // Force reflow so the CSS animation isn't cancelled by the DOM append
-        void draggedPiece.offsetWidth;
-        
-        // Snap! Add class to trigger animation and apply relative sizing/positioning
-        draggedPiece.classList.add('snapped');
-        if (step.id.startsWith('cogwheel')) {
-          draggedPiece.dataset.snappedTargetId = matchedTarget.id;
-        }
-        
-        draggedPiece.style.width = matchedTarget.width + '%';
-        draggedPiece.style.left = matchedTarget.targetX + '%';
-        draggedPiece.style.top = matchedTarget.targetY + '%';
-        
-        // Check if all pieces are snapped
-        const snappedPieces = document.querySelectorAll('.puzzle-piece.snapped');
-        if (snappedPieces.length === PUZZLE_STEPS.length) {
-          completePuzzle();
-        }
-      }
-      
+      checkWinCondition();
       draggedPiece = null;
     };
 
@@ -455,9 +396,56 @@
     window.addEventListener('touchend', stopDrag);
   }
 
+  function checkWinCondition() {
+    const pieces = Array.from(document.querySelectorAll('.puzzle-piece'));
+    
+    // Sort pieces by their current z-index
+    pieces.sort((a, b) => {
+      return parseInt(a.style.zIndex, 10) - parseInt(b.style.zIndex, 10);
+    });
+    
+    // Expected visual stacking from bottom to top
+    const expectedIds = ['piece-backcover', 'piece-cogwheel', 'piece-cogwheel', 'piece-tape', 'piece-frontcover'];
+    
+    let isZOrderCorrect = true;
+    for (let i = 0; i < pieces.length; i++) {
+      const pieceId = pieces[i].id;
+      if (i === 1 || i === 2) {
+        if (!pieceId.startsWith('piece-cogwheel')) isZOrderCorrect = false;
+      } else {
+        if (pieceId !== expectedIds[i]) isZOrderCorrect = false;
+      }
+    }
+    
+    if (!isZOrderCorrect) return;
+    
+    // Check if they are piled together (all centers within backcover's bounding box)
+    const backcover = document.getElementById('piece-backcover');
+    const bgRect = backcover.getBoundingClientRect();
+    
+    let isPiled = true;
+    for (const p of pieces) {
+      if (p.id === 'piece-backcover') continue;
+      
+      const rect = p.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      if (centerX < bgRect.left || centerX > bgRect.right || 
+          centerY < bgRect.top || centerY > bgRect.bottom) {
+        isPiled = false;
+        break;
+      }
+    }
+    
+    if (isPiled) {
+      completePuzzle();
+    }
+  }
+
   function completePuzzle() {
     // Hide individual pieces
-    const pieces = puzzleArea.querySelectorAll('.puzzle-piece');
+    const pieces = document.querySelectorAll('.puzzle-piece');
     pieces.forEach(p => p.style.opacity = 0);
     
     // Hide hint
