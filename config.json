@@ -21,10 +21,9 @@
     "gallery/photo3.png",
     "gallery/photo4.png"
   ],
-  "animation": {
-    "frames": "animation/frame_",
-    "frameCount": 21,
-    "frameExtension": ".png",
-    "frameRate": 24
+  "puzzle": {
+    "pieces": "assets/minigame/",
+    "files": ["backcover.png", "cogwheel.png", "tape.png", "frontcover.png"],
+    "completedImage": "assets/mixtape.PNG"
   }
 }
