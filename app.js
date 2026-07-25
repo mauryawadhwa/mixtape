@@ -1,6 +1,6 @@
 /* ============================================================
    MIXTAPE WEBSITE — APP.JS
-   All logic: config, player, typewriter, transitions, gallery
+   All logic: config, player, typewriter, puzzle game, gallery
    ============================================================ */
 
 (function () {
@@ -16,7 +16,19 @@
   let isTypingIn = false;
   let isTypingOut = false;
   let typeOutTriggered = false;
-  let cassetteFrames = [];
+
+  // Puzzle Game State
+  let currentPuzzleStep = 0;
+  let draggedPiece = null;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  const PUZZLE_STEPS = [
+    { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 100 },
+    { id: 'cogwheel-left', file: 'cogwheel.png', targetX: 18.5, targetY: 25, width: 23 },
+    { id: 'cogwheel-right', file: 'cogwheel.png', targetX: 56, targetY: 25, width: 23 },
+    { id: 'tape', file: 'tape.png', targetX: 16, targetY: 21, width: 28 },
+    { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 100 }
+  ];
 
   // ── DOM Elements ──
   const $ = (id) => document.getElementById(id);
@@ -24,15 +36,13 @@
   const introScreen = $('intro-screen');
   const introLetterText = $('intro-letter-text');
   const introBtn = $('intro-btn');
-  const headerTitleIntro = $('header-title-intro');
-  const headerSubtitleIntro = $('header-subtitle-intro');
   const headerTitleMain = $('header-title-main');
   const headerSubtitleMain = $('header-subtitle-main');
-  const galleryBtnIntro = $('gallery-btn-intro');
   const galleryBtnMain = $('gallery-btn-main');
 
-  const cassetteOverlay = $('cassette-animation');
-  const cassetteFrame = $('cassette-frame');
+  const puzzleOverlay = $('puzzle-game');
+  const puzzleArea = $('puzzle-area');
+  const puzzleSuccess = $('puzzle-success');
 
   const mainPlayer = $('main-player');
   const letterHeading = $('letter-heading');
@@ -52,8 +62,6 @@
   const playPauseBtn = $('play-pause-btn');
   const nextBtn = $('next-btn');
 
-  const pressToPlay = $('press-to-play');
-
   const galleryModal = $('gallery-modal');
   const galleryBackdrop = $('gallery-backdrop');
   const galleryCloseBtn = $('gallery-close-btn');
@@ -72,6 +80,7 @@
   async function loadConfig() {
     try {
       const response = await fetch('config.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       config = await response.json();
       initializeApp();
     } catch (err) {
@@ -81,29 +90,15 @@
   }
 
   function initializeApp() {
-    // Set header text on main screen
     headerTitleMain.textContent = config.header.title;
     headerSubtitleMain.textContent = config.header.subtitle;
-
-    // Set intro letter
     introLetterText.textContent = config.introLetter;
-
-    // Set intro button text
     introBtn.textContent = config.introButtonText || 'PLAY';
-
-    // Set letter heading
     letterHeading.textContent = 'dear ' + config.recipientName + ',';
 
-    // Load first track info
     loadTrack(0);
-
-    // Build gallery
     buildGallery();
-
-    // Preload cassette animation frames
-    preloadCassetteFrames();
-
-    // Bind all events
+    initPuzzleGame();
     bindEvents();
   }
 
@@ -112,7 +107,6 @@
   // ════════════════════════════════════════════
   function loadTrack(index) {
     if (!config || !config.songs || config.songs.length === 0) return;
-
     currentTrackIndex = index;
     const song = config.songs[currentTrackIndex];
 
@@ -133,8 +127,6 @@
       songCover.style.display = 'none';
       songCover.src = '';
     }
-
-    // Reset type-out trigger
     typeOutTriggered = false;
   }
 
@@ -146,12 +138,6 @@
       playPauseBtn.textContent = '▮▮';
       playPauseBtn.setAttribute('aria-label', 'Pause');
       mixtapeImage.classList.add('playing');
-
-      if (!hasStartedOnce) {
-        hasStartedOnce = true;
-        // Start typewriter for first song
-        startTypewriterForCurrentSong();
-      }
     }).catch((err) => {
       console.warn('Playback failed:', err);
     });
@@ -177,11 +163,7 @@
     if (!config || !config.songs) return;
     const wasPlaying = isPlaying;
     pauseSong();
-
-    // Cancel any ongoing typewriter
     cancelTypewriter();
-
-    // Fade out current letter, then type in new one
     const nextIndex = (currentTrackIndex + 1) % config.songs.length;
     fadeOutLetterThenAdvance(nextIndex, wasPlaying);
   }
@@ -190,11 +172,7 @@
     if (!config || !config.songs) return;
     const wasPlaying = isPlaying;
     pauseSong();
-
-    // Cancel any ongoing typewriter
     cancelTypewriter();
-
-    // Fade out current letter, then type in new one
     const prevIndex = (currentTrackIndex - 1 + config.songs.length) % config.songs.length;
     fadeOutLetterThenAdvance(prevIndex, wasPlaying);
   }
@@ -227,15 +205,8 @@
     if (!config || !config.songs) return;
     if (currentTrackIndex < config.songs.length - 1) {
       const nextIndex = currentTrackIndex + 1;
-      loadTrack(nextIndex);
-
-      audio.addEventListener('canplay', function onCanPlay() {
-        audio.removeEventListener('canplay', onCanPlay);
-        playSong();
-        startTypewriterForCurrentSong();
-      });
+      fadeOutLetterThenAdvance(nextIndex, true);
     } else {
-      // Last song ended — stop
       pauseSong();
       typewriterCursor.style.display = 'none';
     }
@@ -278,14 +249,12 @@
       if (i < text.length) {
         letterText.textContent += text.charAt(i);
         i++;
-        const delay = 30 + Math.random() * 50; // 30-80ms variation
+        const delay = 30 + Math.random() * 50; 
         typewriterTimeout = setTimeout(typeNext, delay);
       } else {
         isTypingIn = false;
-        // Keep cursor blinking at end
       }
     }
-
     typeNext();
   }
 
@@ -299,14 +268,13 @@
       if (i > 0) {
         i--;
         letterText.textContent = text.substring(0, i);
-        const delay = 15 + Math.random() * 25; // faster removal: 15-40ms
+        const delay = 15 + Math.random() * 25; 
         typeOutTimeout = setTimeout(removeNext, delay);
       } else {
         isTypingOut = false;
         if (callback) callback();
       }
     }
-
     removeNext();
   }
 
@@ -324,95 +292,162 @@
   }
 
   // ════════════════════════════════════════════
-  // CASSETTE INSERTION ANIMATION
+  // PUZZLE GAME ENGINE
   // ════════════════════════════════════════════
-  function preloadCassetteFrames() {
-    if (!config || !config.animation) return;
+  function initPuzzleGame() {
+    if (!config || !config.puzzle) return;
+    const puzzleConfig = config.puzzle;
+    
+    // Add completed image element
+    const completedImg = document.createElement('img');
+    completedImg.src = puzzleConfig.completedImage;
+    completedImg.className = 'puzzle-completed-img';
+    completedImg.id = 'puzzle-completed';
+    puzzleArea.appendChild(completedImg);
 
-    const anim = config.animation;
-    cassetteFrames = [];
+    // Create and scatter pieces
+    PUZZLE_STEPS.forEach((step, index) => {
+      const img = document.createElement('img');
+      img.src = puzzleConfig.pieces + step.file;
+      img.className = 'puzzle-piece';
+      img.id = 'piece-' + step.id;
+      img.dataset.stepIndex = index;
+      
+      // Calculate scatter position (keep away from center)
+      const isLeft = Math.random() > 0.5;
+      const isTop = Math.random() > 0.5;
+      const x = isLeft ? Math.random() * 15 : 75 + Math.random() * 10;
+      const y = isTop ? Math.random() * 15 : 75 + Math.random() * 10;
+      
+      img.style.left = x + 'vw';
+      img.style.top = y + 'vh';
+      img.style.width = step.width + '%';
+      
+      if (index !== 0) {
+        img.classList.add('disabled');
+      }
+      
+      puzzleOverlay.appendChild(img);
+    });
 
-    for (let i = 0; i <= anim.frameCount; i++) {
-      const img = new Image();
-      const frameNum = String(i).padStart(4, '0');
-      img.src = 'assets/' + anim.frames + frameNum + anim.frameExtension;
-      cassetteFrames.push(img);
-    }
+    bindPuzzleEvents();
   }
 
-  function playCassetteAnimation(callback) {
-    if (!cassetteFrames.length) {
-      // No animation frames provided — skip directly
-      if (callback) callback();
-      return;
-    }
-
-    cassetteOverlay.classList.remove('hidden');
-    let frameIndex = 0;
-    const frameRate = config.animation.frameRate || 24;
-    const frameInterval = 1000 / frameRate;
-
-    cassetteFrame.src = cassetteFrames[0].src;
-
-    const interval = setInterval(() => {
-      frameIndex++;
-      if (frameIndex < cassetteFrames.length) {
-        cassetteFrame.src = cassetteFrames[frameIndex].src;
-      } else {
-        clearInterval(interval);
-        // Fade out the overlay
-        cassetteOverlay.classList.add('fade-out');
-        setTimeout(() => {
-          cassetteOverlay.classList.add('hidden');
-          cassetteOverlay.classList.remove('fade-out');
-          if (callback) callback();
-        }, 600);
+  function bindPuzzleEvents() {
+    const startDrag = (e) => {
+      if (e.target.classList.contains('puzzle-piece') && !e.target.classList.contains('disabled') && !e.target.classList.contains('snapped')) {
+        draggedPiece = e.target;
+        const rect = draggedPiece.getBoundingClientRect();
+        const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+        
+        dragOffsetX = clientX - rect.left;
+        dragOffsetY = clientY - rect.top;
+        
+        draggedPiece.classList.add('dragging');
       }
-    }, frameInterval);
+    };
+
+    const doDrag = (e) => {
+      if (!draggedPiece) return;
+      e.preventDefault();
+      
+      const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+      const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+      
+      draggedPiece.style.left = (clientX - dragOffsetX) + 'px';
+      draggedPiece.style.top = (clientY - dragOffsetY) + 'px';
+    };
+
+    const stopDrag = () => {
+      if (!draggedPiece) return;
+      
+      draggedPiece.classList.remove('dragging');
+      
+      // Check snap
+      const pieceRect = draggedPiece.getBoundingClientRect();
+      const areaRect = puzzleArea.getBoundingClientRect();
+      const step = PUZZLE_STEPS[currentPuzzleStep];
+      
+      // Target in pixels relative to viewport
+      const targetLeft = areaRect.left + (areaRect.width * (step.targetX / 100));
+      const targetTop = areaRect.top + (areaRect.height * (step.targetY / 100));
+      
+      // Snap threshold: 80px distance between top-left corners
+      const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
+      
+      if (dist < 80) {
+        // Snap!
+        draggedPiece.classList.add('snapped');
+        
+        // Move piece inside puzzleArea for relative positioning
+        draggedPiece.style.left = step.targetX + '%';
+        draggedPiece.style.top = step.targetY + '%';
+        puzzleArea.appendChild(draggedPiece);
+        
+        currentPuzzleStep++;
+        
+        if (currentPuzzleStep < PUZZLE_STEPS.length) {
+          // Enable next piece
+          const nextPiece = document.querySelector(`[data-step-index="${currentPuzzleStep}"]`);
+          if (nextPiece) nextPiece.classList.remove('disabled');
+        } else {
+          // Puzzle completed
+          completePuzzle();
+        }
+      }
+      
+      draggedPiece = null;
+    };
+
+    puzzleOverlay.addEventListener('mousedown', startDrag);
+    puzzleOverlay.addEventListener('mousemove', doDrag);
+    window.addEventListener('mouseup', stopDrag);
+    
+    puzzleOverlay.addEventListener('touchstart', startDrag, { passive: false });
+    puzzleOverlay.addEventListener('touchmove', doDrag, { passive: false });
+    window.addEventListener('touchend', stopDrag);
+  }
+
+  function completePuzzle() {
+    // Hide individual pieces
+    const pieces = puzzleArea.querySelectorAll('.puzzle-piece');
+    pieces.forEach(p => p.style.opacity = 0);
+    
+    // Hide hint
+    $('puzzle-hint').style.display = 'none';
+    
+    // Show completed image and success message
+    const completedImg = $('puzzle-completed');
+    completedImg.classList.add('visible');
+    puzzleSuccess.classList.remove('hidden');
+    
+    setTimeout(() => {
+      // Transition to main player
+      puzzleOverlay.classList.add('fade-out');
+      mainPlayer.classList.add('visible');
+      
+      setTimeout(() => {
+        puzzleOverlay.classList.add('hidden');
+        if (!hasStartedOnce) {
+          hasStartedOnce = true;
+          playSong();
+          startTypewriterForCurrentSong();
+        }
+      }, 600);
+    }, 3000); // show "good job" for 3s
   }
 
   // ════════════════════════════════════════════
   // INTRO SCREEN CONTROLLER
   // ════════════════════════════════════════════
   function startTransition() {
-    // Slide up the intro screen
     introScreen.classList.add('slide-up');
-
-    // Show the main player underneath
-    mainPlayer.classList.add('visible');
-
-    // After slide-up completes, play cassette animation
+    puzzleOverlay.classList.remove('hidden');
+    
     setTimeout(() => {
       introScreen.classList.add('hidden');
-
-      playCassetteAnimation(() => {
-        // Show press-to-play overlay
-        showPressToPlay();
-      });
     }, 850);
-  }
-
-  // ════════════════════════════════════════════
-  // PRESS TO PLAY OVERLAY
-  // ════════════════════════════════════════════
-  function showPressToPlay() {
-    pressToPlay.classList.remove('hidden');
-
-    // Check if user provided a press-to-play image
-    if (config.pressToPlayImage) {
-      const content = $('press-to-play-content');
-      content.innerHTML = '';
-      const img = document.createElement('img');
-      img.src = config.pressToPlayImage;
-      img.alt = 'Press to play';
-      content.appendChild(img);
-    }
-  }
-
-  function dismissPressToPlay() {
-    pressToPlay.classList.add('hidden');
-    // Start playing
-    playSong();
   }
 
   // ════════════════════════════════════════════
@@ -456,13 +491,8 @@
   // EVENT BINDING
   // ════════════════════════════════════════════
   function bindEvents() {
-    // Intro
     introBtn.addEventListener('click', startTransition);
 
-    // Press to play
-    pressToPlay.addEventListener('click', dismissPressToPlay);
-
-    // Transport controls
     playPauseBtn.addEventListener('click', () => {
       if (!hasStartedOnce) {
         hasStartedOnce = true;
@@ -475,25 +505,20 @@
     nextBtn.addEventListener('click', nextTrack);
     prevBtn.addEventListener('click', prevTrack);
 
-    // Progress bar seek
     progressBar.addEventListener('click', seekTo);
 
-    // Audio events
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('loadedmetadata', () => {
       timeTotal.textContent = formatTime(audio.duration);
     });
     audio.addEventListener('ended', onTrackEnded);
 
-    // Gallery
     galleryBtnMain.addEventListener('click', openGallery);
     galleryCloseBtn.addEventListener('click', closeGallery);
     galleryBackdrop.addEventListener('click', closeGallery);
 
-    // Lightbox
     lightbox.addEventListener('click', closeLightbox);
 
-    // Keyboard
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (lightbox.classList.contains('visible')) {
@@ -502,7 +527,6 @@
           closeGallery();
         }
       }
-      // Space to toggle play/pause (when not typing)
       if (e.key === ' ' && e.target === document.body) {
         e.preventDefault();
         if (mainPlayer.classList.contains('visible') && hasStartedOnce) {
@@ -522,22 +546,16 @@
     progressFill.style.width = progress + '%';
     timeElapsed.textContent = formatTime(audio.currentTime);
 
-    // Check for type-out trigger at ~20 seconds remaining
     const remaining = audio.duration - audio.currentTime;
     if (remaining <= 20 && !typeOutTriggered && !isTypingOut && isPlaying) {
       typeOutTriggered = true;
-      typeOut(() => {
-        // Type-out complete, ready for next song
-      });
+      typeOut(() => {});
     }
   }
 
   function onTrackEnded() {
-    // Cancel any ongoing typewriter activity
     cancelTypewriter();
     letterText.textContent = '';
-
-    // Auto-advance
     autoAdvance();
   }
 
