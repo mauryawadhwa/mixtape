@@ -315,14 +315,17 @@
       img.id = 'piece-' + step.id;
       img.dataset.stepIndex = index;
       
-      // Keep pieces fully on screen (avoiding top 20% for hint, and right/bottom edges)
-      // width is 20vw, so max left is 75vw. height is approx 15vh, so max top is 80vh.
-      const x = 5 + Math.random() * 70; // 5vw to 75vw
-      const y = 25 + Math.random() * 55; // 25vh to 80vh
+      // Keep pieces fully on screen based on their actual scaled width
+      // puzzleArea is 50vw, so actual width in vw is step.width / 2
+      const actualWidthVw = step.width / 2;
+      
+      const maxX = 95 - actualWidthVw;
+      const x = 5 + Math.random() * (maxX - 5); 
+      const y = 25 + Math.random() * 45; // 25vh to 70vh
       
       img.style.left = x + 'vw';
       img.style.top = y + 'vh';
-      img.style.width = '20vw'; // uniform size
+      img.style.width = actualWidthVw + 'vw';
       img.style.zIndex = index + 1; // Ensure correct stacking order
       
       // Append to puzzleOverlay so they can be anywhere on screen
