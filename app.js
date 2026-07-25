@@ -315,21 +315,21 @@
       img.id = 'piece-' + step.id;
       img.dataset.stepIndex = index;
       
-      // Scatter left or right of the puzzleArea
-      const isLeft = Math.random() > 0.5;
-      const x = isLeft ? -10 - (Math.random() * 10) : 100 + (Math.random() * 10); // slightly outside
-      const y = Math.random() * 80; // inside vertically
+      // Keep pieces fully on screen (avoiding top 20% for hint, and right/bottom edges)
+      // width is 20vw, so max left is 75vw. height is approx 15vh, so max top is 80vh.
+      const x = 5 + Math.random() * 70; // 5vw to 75vw
+      const y = 25 + Math.random() * 55; // 25vh to 80vh
       
-      img.style.left = x + '%';
-      img.style.top = y + '%';
-      img.style.width = step.width + '%';
+      img.style.left = x + 'vw';
+      img.style.top = y + 'vh';
+      img.style.width = '20vw'; // uniform size
       
       if (index !== 0) {
         img.classList.add('disabled');
       }
       
-      // Append directly to puzzleArea
-      puzzleArea.appendChild(img);
+      // Append to puzzleOverlay so they can be anywhere on screen
+      puzzleOverlay.appendChild(img);
     });
 
     bindPuzzleEvents();
@@ -357,9 +357,16 @@
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
       
-      const areaRect = puzzleArea.getBoundingClientRect();
-      const newLeft = (clientX - dragOffsetX) - areaRect.left;
-      const newTop = (clientY - dragOffsetY) - areaRect.top;
+      let newLeft = clientX - dragOffsetX;
+      let newTop = clientY - dragOffsetY;
+      
+      // Keep piece within viewport while dragging
+      const rect = draggedPiece.getBoundingClientRect();
+      const maxLeft = window.innerWidth - rect.width;
+      const maxTop = window.innerHeight - rect.height;
+      
+      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+      newTop = Math.max(0, Math.min(newTop, maxTop));
       
       draggedPiece.style.left = newLeft + 'px';
       draggedPiece.style.top = newTop + 'px';
@@ -375,24 +382,23 @@
       const areaRect = puzzleArea.getBoundingClientRect();
       const step = PUZZLE_STEPS[currentPuzzleStep];
       
-      // Target relative to area
-      const targetLeft = areaRect.width * (step.targetX / 100);
-      const targetTop = areaRect.height * (step.targetY / 100);
+      // Target position in viewport coordinates
+      const targetLeft = areaRect.left + (areaRect.width * (step.targetX / 100));
+      const targetTop = areaRect.top + (areaRect.height * (step.targetY / 100));
       
-      // Current piece relative to area
-      const pieceLeft = pieceRect.left - areaRect.left;
-      const pieceTop = pieceRect.top - areaRect.top;
+      // Distance between top-left corners
+      const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
       
-      // Snap threshold
-      const dist = Math.hypot(pieceLeft - targetLeft, pieceTop - targetTop);
-      
-      if (dist < 60) {
+      // Increase snap threshold because the piece is scaled down to 20vw
+      if (dist < 100) {
         // Snap!
         draggedPiece.classList.add('snapped');
         
-        // Convert to percentage for responsiveness
+        // Append to puzzleArea and switch to relative sizing/positioning
+        draggedPiece.style.width = step.width + '%';
         draggedPiece.style.left = step.targetX + '%';
         draggedPiece.style.top = step.targetY + '%';
+        puzzleArea.appendChild(draggedPiece);
         
         currentPuzzleStep++;
         
