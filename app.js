@@ -23,11 +23,11 @@
   let dragOffsetX = 0;
   let dragOffsetY = 0;
   const PUZZLE_STEPS = [
-    { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 50 },
+    { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 100 },
     { id: 'cogwheel-1', file: 'cogwheel.png', targetX: 16.67, targetY: 22.25, width: 26.66 },
     { id: 'cogwheel-2', file: 'cogwheel.png', targetX: 56.67, targetY: 22.25, width: 26.66 },
-    { id: 'tape', file: 'tape.png', targetX: 3.33, targetY: 2.25, width: 30 },
-    { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 50 }
+    { id: 'tape', file: 'tape.png', targetX: 3.33, targetY: 2.25, width: 53.33 },
+    { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 100 }
   ];
 
   // ── DOM Elements ──
@@ -38,7 +38,6 @@
   const introBtn = $('intro-btn');
   const headerTitleMain = $('header-title-main');
   const headerSubtitleMain = $('header-subtitle-main');
-  const galleryBtnMain = $('gallery-btn-main');
 
   const puzzleOverlay = $('puzzle-game');
   const puzzleArea = $('puzzle-area');
@@ -61,14 +60,6 @@
   const prevBtn = $('prev-btn');
   const playPauseBtn = $('play-pause-btn');
   const nextBtn = $('next-btn');
-
-  const galleryModal = $('gallery-modal');
-  const galleryBackdrop = $('gallery-backdrop');
-  const galleryCloseBtn = $('gallery-close-btn');
-  const galleryGrid = $('gallery-grid');
-
-  const lightbox = $('gallery-lightbox');
-  const lightboxImage = $('lightbox-image');
 
   const songCover = $('song-cover');
 
@@ -97,7 +88,15 @@
     letterHeading.textContent = 'dear ' + config.recipientName + ',';
 
     loadTrack(0);
-    buildGallery();
+  const surpriseBtnMain = $('surprise-btn-main');
+  if (surpriseBtnMain) {
+    surpriseBtnMain.addEventListener('click', () => {
+      if (isPlaying) {
+        pauseSong();
+      }
+      window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1', '_blank');
+    });
+  }
     initPuzzleGame();
     bindEvents();
   }
@@ -485,43 +484,6 @@
   }
 
   // ════════════════════════════════════════════
-  // GALLERY CONTROLLER
-  // ════════════════════════════════════════════
-  function buildGallery() {
-    if (!config || !config.gallery || config.gallery.length === 0) return;
-    galleryGrid.innerHTML = '';
-
-    config.gallery.forEach((src, index) => {
-      const img = document.createElement('img');
-      img.src = 'assets/' + src;
-      img.alt = 'Gallery photo ' + (index + 1);
-      img.loading = 'lazy';
-      img.addEventListener('click', () => openLightbox('assets/' + src));
-      galleryGrid.appendChild(img);
-    });
-  }
-
-  function openGallery() {
-    galleryModal.classList.add('visible');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeGallery() {
-    galleryModal.classList.remove('visible');
-    document.body.style.overflow = '';
-  }
-
-  function openLightbox(src) {
-    lightboxImage.src = src;
-    lightbox.classList.add('visible');
-  }
-
-  function closeLightbox() {
-    lightbox.classList.remove('visible');
-    lightboxImage.src = '';
-  }
-
-  // ════════════════════════════════════════════
   // EVENT BINDING
   // ════════════════════════════════════════════
   function bindEvents() {
@@ -547,20 +509,7 @@
     });
     audio.addEventListener('ended', onTrackEnded);
 
-    galleryBtnMain.addEventListener('click', openGallery);
-    galleryCloseBtn.addEventListener('click', closeGallery);
-    galleryBackdrop.addEventListener('click', closeGallery);
-
-    lightbox.addEventListener('click', closeLightbox);
-
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (lightbox.classList.contains('visible')) {
-          closeLightbox();
-        } else if (galleryModal.classList.contains('visible')) {
-          closeGallery();
-        }
-      }
       if (e.key === ' ' && e.target === document.body) {
         e.preventDefault();
         if (mainPlayer.classList.contains('visible') && hasStartedOnce) {
