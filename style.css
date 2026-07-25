@@ -287,6 +287,10 @@ body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+.puzzle-success.hidden {
+  display: none !important;
+}
+
 @keyframes snap-bounce {
   0% { transform: scale(1); }
   50% { transform: scale(1.08); }
