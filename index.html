@@ -23,10 +23,14 @@
   </div>
 
   <!-- ════════════════════════════════════════════
-       CASSETTE ANIMATION OVERLAY
+       PUZZLE GAME OVERLAY
        ════════════════════════════════════════════ -->
-  <div id="cassette-animation" class="cassette-animation-overlay hidden">
-    <img id="cassette-frame" class="cassette-frame" src="" alt="Cassette insertion animation">
+  <div id="puzzle-game" class="puzzle-game-overlay hidden">
+    <div class="puzzle-hint" id="puzzle-hint">i sent all parts separately to ensure safety. assemble it for me?</div>
+    <div class="puzzle-area" id="puzzle-area">
+      <!-- Puzzle pieces and completed image will be injected here -->
+    </div>
+    <div class="puzzle-success hidden" id="puzzle-success">good job!</div>
   </div>
 
   <!-- ════════════════════════════════════════════
@@ -92,15 +96,7 @@
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════════
-       PRESS TO PLAY OVERLAY
-       ════════════════════════════════════════════ -->
-  <div id="press-to-play" class="press-to-play-overlay hidden">
-    <div id="press-to-play-content">
-      <!-- Will be populated: either an image or fallback text -->
-      <div class="press-to-play-text">PRESS PLAY TO START</div>
-    </div>
-  </div>
+
 
   <!-- ════════════════════════════════════════════
        GALLERY MODAL
