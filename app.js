@@ -24,9 +24,9 @@
   let dragOffsetY = 0;
   const PUZZLE_STEPS = [
     { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 100 },
-    { id: 'cogwheel-left', file: 'cogwheel.png', targetX: 23, targetY: 31.75, width: 14 },
-    { id: 'cogwheel-right', file: 'cogwheel.png', targetX: 60.5, targetY: 31.75, width: 14 },
-    { id: 'tape', file: 'tape.png', targetX: 20, targetY: 27, width: 20 },
+    { id: 'cogwheel-left', file: 'cogwheel.png', targetX: -10, targetY: -17.75, width: 80 },
+    { id: 'cogwheel-right', file: 'cogwheel.png', targetX: 27.5, targetY: -17.75, width: 80 },
+    { id: 'tape', file: 'tape.png', targetX: -10, targetY: -17.75, width: 80 },
     { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 100 }
   ];
 
@@ -389,14 +389,17 @@
       
       // Increase snap threshold because the piece is scaled down to 20vw
       if (dist < 100) {
-        // Snap!
-        draggedPiece.classList.add('snapped');
+        // Append to puzzleArea first to ensure correct DOM placement
+        puzzleArea.appendChild(draggedPiece);
         
-        // Append to puzzleArea and switch to relative sizing/positioning
+        // Force reflow so the CSS animation isn't cancelled by the DOM append
+        void draggedPiece.offsetWidth;
+        
+        // Snap! Add class to trigger animation and apply relative sizing/positioning
+        draggedPiece.classList.add('snapped');
         draggedPiece.style.width = step.width + '%';
         draggedPiece.style.left = step.targetX + '%';
         draggedPiece.style.top = step.targetY + '%';
-        puzzleArea.appendChild(draggedPiece);
         
         // Check if all pieces are snapped
         const snappedPieces = document.querySelectorAll('.puzzle-piece.snapped');
