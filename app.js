@@ -23,11 +23,11 @@
   let dragOffsetX = 0;
   let dragOffsetY = 0;
   const PUZZLE_STEPS = [
-    { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 100 },
-    { id: 'cogwheel-1', file: 'cogwheel.png', targetX: 16.67, targetY: 22.25, width: 26.66 },
-    { id: 'cogwheel-2', file: 'cogwheel.png', targetX: 56.67, targetY: 22.25, width: 26.66 },
-    { id: 'tape', file: 'tape.png', targetX: 3.33, targetY: 2.25, width: 53.33 },
-    { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 100 }
+    { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 50 },
+    { id: 'cogwheel-1', file: 'cogwheel.png', targetX: 16.67, targetY: 22.25, width: 23 },
+    { id: 'cogwheel-2', file: 'cogwheel.png', targetX: 56.67, targetY: 22.25, width: 23 },
+    { id: 'tape', file: 'tape.png', targetX: 3.33, targetY: 2.25, width: 25 },
+    { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 50 }
   ];
 
   // ── DOM Elements ──
