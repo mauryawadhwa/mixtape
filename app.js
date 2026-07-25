@@ -88,15 +88,15 @@
     letterHeading.textContent = 'dear ' + config.recipientName + ',';
 
     loadTrack(0);
-  const surpriseBtnMain = $('surprise-btn-main');
-  if (surpriseBtnMain) {
-    surpriseBtnMain.addEventListener('click', () => {
-      if (isPlaying) {
-        pauseSong();
-      }
-      window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1', '_blank');
-    });
-  }
+    const surpriseBtnMain = $('surprise-btn-main');
+    if (surpriseBtnMain) {
+      surpriseBtnMain.addEventListener('click', () => {
+        if (isPlaying) {
+          pauseSong();
+        }
+        window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1', '_blank');
+      });
+    }
     initPuzzleGame();
     bindEvents();
   }
@@ -248,7 +248,7 @@
       if (i < text.length) {
         letterText.textContent += text.charAt(i);
         i++;
-        const delay = 30 + Math.random() * 50; 
+        const delay = 30 + Math.random() * 50;
         typewriterTimeout = setTimeout(typeNext, delay);
       } else {
         isTypingIn = false;
@@ -267,7 +267,7 @@
       if (i > 0) {
         i--;
         letterText.textContent = text.substring(0, i);
-        const delay = 15 + Math.random() * 25; 
+        const delay = 15 + Math.random() * 25;
         typeOutTimeout = setTimeout(removeNext, delay);
       } else {
         isTypingOut = false;
@@ -296,7 +296,7 @@
   function initPuzzleGame() {
     if (!config || !config.puzzle) return;
     const puzzleConfig = config.puzzle;
-    
+
     // Add completed image element
     const completedImg = document.createElement('img');
     completedImg.src = puzzleConfig.pieces + '../mixtape.PNG';
@@ -317,20 +317,20 @@
       img.className = 'puzzle-piece';
       img.id = 'piece-' + step.id;
       img.dataset.stepIndex = index;
-      
+
       // Keep pieces fully on screen based on their actual scaled width
       // puzzleArea is 50vw, so actual width in vw is step.width / 2
       const actualWidthVw = step.width / 2;
-      
+
       const maxX = 95 - actualWidthVw;
-      const x = 5 + Math.random() * (maxX - 5); 
+      const x = 5 + Math.random() * (maxX - 5);
       const y = 25 + Math.random() * 45; // 25vh to 70vh
-      
+
       img.style.left = x + 'vw';
       img.style.top = y + 'vh';
       img.style.width = actualWidthVw + 'vw';
       img.style.zIndex = initialZ[index]; // Apply randomized stacking
-      
+
       // Append to puzzleOverlay so they can be anywhere on screen
       puzzleOverlay.appendChild(img);
     });
@@ -345,10 +345,10 @@
         const rect = draggedPiece.getBoundingClientRect();
         const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
         const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-        
+
         dragOffsetX = clientX - rect.left;
         dragOffsetY = clientY - rect.top;
-        
+
         // Bring piece to front when dragged
         maxZIndex++;
         draggedPiece.style.zIndex = maxZIndex;
@@ -359,28 +359,28 @@
     const doDrag = (e) => {
       if (!draggedPiece) return;
       e.preventDefault();
-      
+
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-      
+
       let newLeft = clientX - dragOffsetX;
       let newTop = clientY - dragOffsetY;
-      
+
       // Keep piece within viewport while dragging
       const rect = draggedPiece.getBoundingClientRect();
       const maxLeft = window.innerWidth - rect.width;
       const maxTop = window.innerHeight - rect.height;
-      
+
       newLeft = Math.max(0, Math.min(newLeft, maxLeft));
       newTop = Math.max(0, Math.min(newTop, maxTop));
-      
+
       draggedPiece.style.left = newLeft + 'px';
       draggedPiece.style.top = newTop + 'px';
     };
 
     const stopDrag = () => {
       if (!draggedPiece) return;
-      
+
       draggedPiece.classList.remove('dragging');
       checkWinCondition();
       draggedPiece = null;
@@ -389,7 +389,7 @@
     puzzleOverlay.addEventListener('mousedown', startDrag);
     puzzleOverlay.addEventListener('mousemove', doDrag);
     window.addEventListener('mouseup', stopDrag);
-    
+
     puzzleOverlay.addEventListener('touchstart', startDrag, { passive: false });
     puzzleOverlay.addEventListener('touchmove', doDrag, { passive: false });
     window.addEventListener('touchend', stopDrag);
@@ -397,15 +397,15 @@
 
   function checkWinCondition() {
     const pieces = Array.from(document.querySelectorAll('.puzzle-piece'));
-    
+
     // Sort pieces by their current z-index
     pieces.sort((a, b) => {
       return parseInt(a.style.zIndex, 10) - parseInt(b.style.zIndex, 10);
     });
-    
+
     // Expected visual stacking from bottom to top
     const expectedIds = ['piece-backcover', 'piece-cogwheel', 'piece-cogwheel', 'piece-tape', 'piece-frontcover'];
-    
+
     let isZOrderCorrect = true;
     for (let i = 0; i < pieces.length; i++) {
       const pieceId = pieces[i].id;
@@ -415,28 +415,28 @@
         if (pieceId !== expectedIds[i]) isZOrderCorrect = false;
       }
     }
-    
+
     if (!isZOrderCorrect) return;
-    
+
     // Check if they are piled together (all centers within backcover's bounding box)
     const backcover = document.getElementById('piece-backcover');
     const bgRect = backcover.getBoundingClientRect();
-    
+
     let isPiled = true;
     for (const p of pieces) {
       if (p.id === 'piece-backcover') continue;
-      
+
       const rect = p.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      
-      if (centerX < bgRect.left || centerX > bgRect.right || 
-          centerY < bgRect.top || centerY > bgRect.bottom) {
+
+      if (centerX < bgRect.left || centerX > bgRect.right ||
+        centerY < bgRect.top || centerY > bgRect.bottom) {
         isPiled = false;
         break;
       }
     }
-    
+
     if (isPiled) {
       completePuzzle();
     }
@@ -446,20 +446,20 @@
     // Hide individual pieces
     const pieces = document.querySelectorAll('.puzzle-piece');
     pieces.forEach(p => p.style.opacity = 0);
-    
+
     // Hide hint
     $('puzzle-hint').style.display = 'none';
-    
+
     // Show completed image and success message
     const completedImg = $('puzzle-completed');
     completedImg.classList.add('visible');
     puzzleSuccess.classList.remove('hidden');
-    
+
     setTimeout(() => {
       // Transition to main player
       puzzleOverlay.classList.add('fade-out');
       mainPlayer.classList.add('visible');
-      
+
       setTimeout(() => {
         puzzleOverlay.classList.add('hidden');
         if (!hasStartedOnce) {
@@ -477,7 +477,7 @@
   function startTransition() {
     introScreen.classList.add('slide-up');
     puzzleOverlay.classList.remove('hidden');
-    
+
     setTimeout(() => {
       introScreen.classList.add('hidden');
     }, 850);
@@ -532,7 +532,7 @@
     const remaining = audio.duration - audio.currentTime;
     if (remaining <= 20 && !typeOutTriggered && !isTypingOut && isPlaying) {
       typeOutTriggered = true;
-      typeOut(() => {});
+      typeOut(() => { });
     }
   }
 
