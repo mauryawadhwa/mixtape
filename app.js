@@ -300,6 +300,8 @@
     
     // Add completed image element
     const completedImg = document.createElement('img');
+    completedImg.src = puzzleConfig.pieces + '../mixtape.PNG';
+    // Actually config says completedImage is 'assets/mixtape.PNG', let's use that
     completedImg.src = puzzleConfig.completedImage;
     completedImg.className = 'puzzle-completed-img';
     completedImg.id = 'puzzle-completed';
@@ -313,21 +315,21 @@
       img.id = 'piece-' + step.id;
       img.dataset.stepIndex = index;
       
-      // Calculate scatter position (keep away from center)
+      // Scatter left or right of the puzzleArea
       const isLeft = Math.random() > 0.5;
-      const isTop = Math.random() > 0.5;
-      const x = isLeft ? Math.random() * 15 : 75 + Math.random() * 10;
-      const y = isTop ? Math.random() * 15 : 75 + Math.random() * 10;
+      const x = isLeft ? -10 - (Math.random() * 10) : 100 + (Math.random() * 10); // slightly outside
+      const y = Math.random() * 80; // inside vertically
       
-      img.style.left = x + 'vw';
-      img.style.top = y + 'vh';
+      img.style.left = x + '%';
+      img.style.top = y + '%';
       img.style.width = step.width + '%';
       
       if (index !== 0) {
         img.classList.add('disabled');
       }
       
-      puzzleOverlay.appendChild(img);
+      // Append directly to puzzleArea
+      puzzleArea.appendChild(img);
     });
 
     bindPuzzleEvents();
@@ -355,8 +357,12 @@
       const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
       const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
       
-      draggedPiece.style.left = (clientX - dragOffsetX) + 'px';
-      draggedPiece.style.top = (clientY - dragOffsetY) + 'px';
+      const areaRect = puzzleArea.getBoundingClientRect();
+      const newLeft = (clientX - dragOffsetX) - areaRect.left;
+      const newTop = (clientY - dragOffsetY) - areaRect.top;
+      
+      draggedPiece.style.left = newLeft + 'px';
+      draggedPiece.style.top = newTop + 'px';
     };
 
     const stopDrag = () => {
@@ -369,21 +375,24 @@
       const areaRect = puzzleArea.getBoundingClientRect();
       const step = PUZZLE_STEPS[currentPuzzleStep];
       
-      // Target in pixels relative to viewport
-      const targetLeft = areaRect.left + (areaRect.width * (step.targetX / 100));
-      const targetTop = areaRect.top + (areaRect.height * (step.targetY / 100));
+      // Target relative to area
+      const targetLeft = areaRect.width * (step.targetX / 100);
+      const targetTop = areaRect.height * (step.targetY / 100);
       
-      // Snap threshold: 80px distance between top-left corners
-      const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
+      // Current piece relative to area
+      const pieceLeft = pieceRect.left - areaRect.left;
+      const pieceTop = pieceRect.top - areaRect.top;
       
-      if (dist < 80) {
+      // Snap threshold
+      const dist = Math.hypot(pieceLeft - targetLeft, pieceTop - targetTop);
+      
+      if (dist < 60) {
         // Snap!
         draggedPiece.classList.add('snapped');
         
-        // Move piece inside puzzleArea for relative positioning
+        // Convert to percentage for responsiveness
         draggedPiece.style.left = step.targetX + '%';
         draggedPiece.style.top = step.targetY + '%';
-        puzzleArea.appendChild(draggedPiece);
         
         currentPuzzleStep++;
         
