@@ -24,9 +24,9 @@
   let dragOffsetY = 0;
   const PUZZLE_STEPS = [
     { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 100 },
-    { id: 'cogwheel-left', file: 'cogwheel.png', targetX: 18.5, targetY: 25, width: 23 },
-    { id: 'cogwheel-right', file: 'cogwheel.png', targetX: 56, targetY: 25, width: 23 },
-    { id: 'tape', file: 'tape.png', targetX: 16, targetY: 21, width: 28 },
+    { id: 'cogwheel-left', file: 'cogwheel.png', targetX: 23, targetY: 31.75, width: 14 },
+    { id: 'cogwheel-right', file: 'cogwheel.png', targetX: 60.5, targetY: 31.75, width: 14 },
+    { id: 'tape', file: 'tape.png', targetX: 20, targetY: 27, width: 20 },
     { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 100 }
   ];
 
