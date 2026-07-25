@@ -24,8 +24,8 @@
   let dragOffsetY = 0;
   const PUZZLE_STEPS = [
     { id: 'backcover', file: 'backcover.png', targetX: 0, targetY: 0, width: 100 },
-    { id: 'cogwheel-left', file: 'cogwheel.png', targetX: 3.33, targetY: 2.25, width: 53.33 },
-    { id: 'cogwheel-right', file: 'cogwheel.png', targetX: 40.83, targetY: 2.25, width: 53.33 },
+    { id: 'cogwheel-1', file: 'cogwheel.png', targetX: 16.67, targetY: 22.25, width: 26.66 },
+    { id: 'cogwheel-2', file: 'cogwheel.png', targetX: 56.67, targetY: 22.25, width: 26.66 },
     { id: 'tape', file: 'tape.png', targetX: 3.33, targetY: 2.25, width: 53.33 },
     { id: 'frontcover', file: 'frontcover.png', targetX: 0, targetY: 0, width: 100 }
   ];
@@ -380,15 +380,43 @@
       const stepIndex = parseInt(draggedPiece.dataset.stepIndex, 10);
       const step = PUZZLE_STEPS[stepIndex];
       
-      // Target position in viewport coordinates
-      const targetLeft = areaRect.left + (areaRect.width * (step.targetX / 100));
-      const targetTop = areaRect.top + (areaRect.height * (step.targetY / 100));
+      let matchedTarget = null;
+      let minDistance = 100; // Snap threshold
       
-      // Distance between top-left corners
-      const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
+      if (step.id.startsWith('cogwheel')) {
+        // Cogwheels can snap to either left or right hole
+        const possibleTargets = [
+          { id: 'target-cogwheel-left', targetX: 16.67, targetY: 22.25, width: 26.66 },
+          { id: 'target-cogwheel-right', targetX: 56.67, targetY: 22.25, width: 26.66 }
+        ];
+        
+        // Exclude targets that are already occupied
+        const snappedCogwheels = document.querySelectorAll('.puzzle-piece.snapped[id^="piece-cogwheel"]');
+        const occupiedIds = Array.from(snappedCogwheels).map(c => c.dataset.snappedTargetId);
+        
+        for (const t of possibleTargets) {
+          if (occupiedIds.includes(t.id)) continue;
+          
+          const targetLeft = areaRect.left + (areaRect.width * (t.targetX / 100));
+          const targetTop = areaRect.top + (areaRect.height * (t.targetY / 100));
+          const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
+          
+          if (dist < minDistance) {
+            minDistance = dist;
+            matchedTarget = t;
+          }
+        }
+      } else {
+        const targetLeft = areaRect.left + (areaRect.width * (step.targetX / 100));
+        const targetTop = areaRect.top + (areaRect.height * (step.targetY / 100));
+        const dist = Math.hypot(pieceRect.left - targetLeft, pieceRect.top - targetTop);
+        if (dist < minDistance) {
+          minDistance = dist;
+          matchedTarget = step;
+        }
+      }
       
-      // Increase snap threshold because the piece is scaled down to 20vw
-      if (dist < 100) {
+      if (matchedTarget) {
         // Append to puzzleArea first to ensure correct DOM placement
         puzzleArea.appendChild(draggedPiece);
         
@@ -397,9 +425,13 @@
         
         // Snap! Add class to trigger animation and apply relative sizing/positioning
         draggedPiece.classList.add('snapped');
-        draggedPiece.style.width = step.width + '%';
-        draggedPiece.style.left = step.targetX + '%';
-        draggedPiece.style.top = step.targetY + '%';
+        if (step.id.startsWith('cogwheel')) {
+          draggedPiece.dataset.snappedTargetId = matchedTarget.id;
+        }
+        
+        draggedPiece.style.width = matchedTarget.width + '%';
+        draggedPiece.style.left = matchedTarget.targetX + '%';
+        draggedPiece.style.top = matchedTarget.targetY + '%';
         
         // Check if all pieces are snapped
         const snappedPieces = document.querySelectorAll('.puzzle-piece.snapped');
